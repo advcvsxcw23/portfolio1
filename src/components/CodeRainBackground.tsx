@@ -1,11 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const CodeRainBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // Detect mobile devices and user preferences
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setIsMobile(mobile);
+      setIsVisible(!prefersReducedMotion);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !isVisible) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -21,7 +34,8 @@ const CodeRainBackground: React.FC = () => {
     const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const charArray = chars.split('');
     
-    const fontSize = 14;
+    // Optimize for mobile performance
+    const fontSize = isMobile ? 12 : 14;
     const columns = canvas.width / fontSize;
     const drops: number[] = [];
 
@@ -30,7 +44,8 @@ const CodeRainBackground: React.FC = () => {
     }
 
     const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // Reduce opacity on mobile for better performance
+      ctx.fillStyle = isMobile ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = '#00ff41';
@@ -47,15 +62,31 @@ const CodeRainBackground: React.FC = () => {
       }
     };
 
-    const interval = setInterval(draw, 35);
+    // Slower animation on mobile to improve performance
+    const animationSpeed = isMobile ? 50 : 35;
+    const interval = setInterval(draw, animationSpeed);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', checkMobile);
     };
-  }, []);
+  }, [isMobile, isVisible]);
 
-  return <canvas ref={canvasRef} className="matrix-bg" />;
+  // Don't render if user prefers reduced motion or on very small screens
+  if (!isVisible) return null;
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="matrix-bg" 
+      aria-hidden="true"
+      style={{ 
+        willChange: isMobile ? 'auto' : 'transform',
+        opacity: isMobile ? 0.02 : 0.1 
+      }}
+    />
+  );
 };
 
 export default CodeRainBackground;

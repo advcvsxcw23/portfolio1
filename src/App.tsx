@@ -8,6 +8,7 @@ import Research from './components/Research';
 import Certifications from './components/Certifications';
 import Resume from './components/Resume';
 import Contact from './components/Contact';
+import PerformanceMonitor from './components/PerformanceMonitor';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Resume />
         <Contact />
       </Layout>
+      <PerformanceMonitor />
     </ThemeProvider>
   );
 }

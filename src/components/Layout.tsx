@@ -57,11 +57,30 @@ Email: 666645@gmail.com
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  // Performance optimization: Preload critical resources
+  useEffect(() => {
+    // Preload fonts
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'preload';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap';
+    fontLink.as = 'style';
+    document.head.appendChild(fontLink);
+
+    // Add viewport meta tag for mobile optimization
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+    }
+
+    return () => {
+      document.head.removeChild(fontLink);
+    };
+  }, []);
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-x-hidden">
       <CodeRainBackground />
       <Navbar />
-      <main className="relative z-10">
+      <main id="main-content" className="relative z-10" role="main">
         {children}
       </main>
       <Footer />

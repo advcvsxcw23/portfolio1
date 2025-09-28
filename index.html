@@ -1,16 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="description" content="AlBaraa AlOlabi - Computer Vision Engineer & AI Enthusiast. Explore my portfolio of AI projects, research publications, and professional certifications." />
+    <meta name="keywords" content="AlBaraa AlOlabi, Computer Vision, AI, Machine Learning, Portfolio, React Developer" />
+    <meta name="author" content="AlBaraa AlOlabi" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="AlBaraa AlOlabi - Computer Vision Engineer" />
+    <meta property="og:description" content="Explore my portfolio of AI projects, research publications, and professional certifications." />
+    <meta property="og:url" content="https://albaraa.dev" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="AlBaraa AlOlabi - Computer Vision Engineer" />
+    <meta property="twitter:description" content="Explore my portfolio of AI projects, research publications, and professional certifications." />
+    
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://images.pexels.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    
+    <!-- Preload critical fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"></noscript>
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#00ff41" />
+    <meta name="msapplication-TileColor" content="#00ff41" />
+    
     <title>Gamified Dev Portfolio: AlBaraa AlOlabi</title>
+    
+    <!-- Prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+      html { visibility: hidden; opacity: 0; }
+      html.loaded { visibility: visible; opacity: 1; transition: opacity 0.3s; }
+    </style>
   </head>
   <body>
+    <noscript>
+      <div style="text-align: center; padding: 2rem; font-family: Arial, sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>This portfolio requires JavaScript to function properly. Please enable JavaScript in your browser.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Remove FOUC prevention once page is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        document.documentElement.classList.add('loaded');
+      });
+      
+      // Service Worker registration for PWA capabilities
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {
+            // Service worker registration failed, but that's okay
+          });
+        });
+      }
+    </script>
   </body>
 </html>

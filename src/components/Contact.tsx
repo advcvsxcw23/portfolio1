@@ -8,12 +8,15 @@ const Contact: React.FC = () => {
     email: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [terminalOutput, setTerminalOutput] = useState<string[]>([
     '> Terminal initialized...',
     '> Available commands loaded',
     '> Ready for input'
   ]);
   const sectionRef = useRef<HTMLElement>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,6 +35,12 @@ const Contact: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Auto-scroll terminal output
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [terminalOutput]);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -104,14 +113,35 @@ const Contact: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    
     const newOutput = [...terminalOutput];
     newOutput.push('> send-message --submit');
-    newOutput.push('Message sent successfully! ✅');
-    newOutput.push('Thank you for reaching out. I\'ll get back to you soon!');
+    newOutput.push('Processing message...');
     setTerminalOutput(newOutput);
     
-    // Reset form
-    setFormData({ name: '', email: '', message: '' });
+    try {
+      // Simulate API call (replace with actual implementation)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const successOutput = [...newOutput];
+      successOutput.push('Message sent successfully! ✅');
+      successOutput.push('Thank you for reaching out. I\'ll get back to you soon!');
+      setTerminalOutput(successOutput);
+      setSubmitStatus('success');
+      
+      // Reset form
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      const errorOutput = [...newOutput];
+      errorOutput.push('Error: Failed to send message ❌');
+      errorOutput.push('Please try again or contact me directly.');
+      setTerminalOutput(errorOutput);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -151,7 +181,7 @@ const Contact: React.FC = () => {
               <div className="terminal-prompt mb-2" style={{ color: 'var(--accent)' }}>
                 Available Commands:
               </div>
-              <div className="space-y-1 text-sm ml-4" style={{ color: 'var(--text-secondary)' }}>
+              <div className="space-y-1 text-xs md:text-sm ml-4" style={{ color: 'var(--text-secondary)' }}>
                 <div>connect --linkedin    [Opens LinkedIn profile]</div>
                 <div>connect --github      [Opens GitHub profile]</div>
                 <div>connect --email       [Opens email client]</div>
@@ -160,15 +190,16 @@ const Contact: React.FC = () => {
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6">
               <button
                 onClick={() => handleCommand('connect --linkedin')}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105 min-h-[44px]"
                 style={{ 
                   borderColor: 'var(--accent)',
                   color: 'var(--accent)',
                   backgroundColor: 'transparent'
                 }}
+                aria-label="Connect via LinkedIn"
               >
                 <Linkedin className="w-4 h-4" />
                 LinkedIn
@@ -176,12 +207,13 @@ const Contact: React.FC = () => {
               
               <button
                 onClick={() => handleCommand('connect --github')}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105 min-h-[44px]"
                 style={{ 
                   borderColor: 'var(--accent)',
                   color: 'var(--accent)',
                   backgroundColor: 'transparent'
                 }}
+                aria-label="Connect via GitHub"
               >
                 <Github className="w-4 h-4" />
                 GitHub
@@ -189,12 +221,13 @@ const Contact: React.FC = () => {
               
               <button
                 onClick={() => handleCommand('connect --email')}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-300 hover:scale-105 min-h-[44px]"
                 style={{ 
                   borderColor: 'var(--accent)',
                   color: 'var(--accent)',
                   backgroundColor: 'transparent'
                 }}
+                aria-label="Connect via Email"
               >
                 <Mail className="w-4 h-4" />
                 Email
@@ -202,11 +235,12 @@ const Contact: React.FC = () => {
               
               <button
                 onClick={() => handleCommand('send-message')}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 hover:scale-105 min-h-[44px]"
                 style={{ 
                   backgroundColor: 'var(--accent)',
                   color: 'var(--bg-primary)'
                 }}
+                aria-label="Open message form"
               >
                 <Send className="w-4 h-4" />
                 Message
@@ -214,19 +248,16 @@ const Contact: React.FC = () => {
             </div>
 
             {/* Terminal Output */}
-            <div className="bg-black bg-opacity-50 rounded-lg p-4 h-48 overflow-y-auto font-mono text-sm">
+            <div 
+              ref={terminalRef}
+              className="bg-black bg-opacity-50 rounded-lg p-4 h-40 md:h-48 overflow-y-auto font-mono text-xs md:text-sm"
+              role="log"
+              aria-live="polite"
+              aria-label="Terminal output"
+            >
               <div className="h-full flex flex-col">
                 <div 
                   className="flex-1 overflow-y-auto scroll-smooth"
-                  ref={(el) => {
-                    // Auto scroll to bottom when content changes
-                    if (el) {
-                      el.scrollTo({
-                        top: el.scrollHeight,
-                        behavior: 'smooth'
-                      });
-                    }
-                  }}
                 >
                   {terminalOutput.map((line, index) => (
                     <div key={index} className="mb-1" style={{ color: 'var(--terminal-green)' }}>
@@ -250,11 +281,12 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     name="command"
-                    className="flex-1 ml-2 bg-transparent border-none outline-none"
+                    className="flex-1 ml-2 bg-transparent border-none outline-none text-xs md:text-sm"
                     style={{ color: 'var(--terminal-green)' }}
                     placeholder="Type a command..."
                     autoComplete="off"
                     spellCheck="false"
+                    aria-label="Terminal command input"
                   />
                 </form>
               </div>
@@ -278,48 +310,55 @@ const Contact: React.FC = () => {
                   Name
                 </label>
                 <input
+                  id="contact-name"
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 rounded-lg border bg-transparent transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-lg border bg-transparent transition-all duration-300 focus:outline-none focus:ring-2 min-h-[44px]"
                   style={{ 
                     borderColor: 'var(--border)',
                     color: 'var(--text-primary)',
                     backgroundColor: 'var(--bg-primary)'
                   }}
                   placeholder="Enter your name"
+                  disabled={isSubmitting}
                 />
               </div>
 
+                  htmlFor="contact-email"
               <div>
                 <label className="block text-sm font-medium mb-2 terminal-prompt" 
                        style={{ color: 'var(--accent)' }}>
                   Email
                 </label>
                 <input
+                  id="contact-email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 rounded-lg border bg-transparent transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-lg border bg-transparent transition-all duration-300 focus:outline-none focus:ring-2 min-h-[44px]"
                   style={{ 
                     borderColor: 'var(--border)',
                     color: 'var(--text-primary)',
                     backgroundColor: 'var(--bg-primary)'
                   }}
                   placeholder="Enter your email"
+                  disabled={isSubmitting}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2 terminal-prompt" 
+                  htmlFor="contact-message"
                        style={{ color: 'var(--accent)' }}>
                   Message
                 </label>
                 <textarea
+                  id="contact-message"
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
@@ -332,20 +371,25 @@ const Contact: React.FC = () => {
                     backgroundColor: 'var(--bg-primary)'
                   }}
                   placeholder="Enter your message"
+                  disabled={isSubmitting}
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-lg border-2 transition-all duration-300 hover:scale-105"
+                className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-lg border-2 transition-all duration-300 hover:scale-105 min-h-[44px] ${
+                  isSubmitting ? 'loading' : ''
+                }`}
                 style={{ 
                   borderColor: 'var(--accent)',
                   color: 'var(--accent)',
                   backgroundColor: 'transparent'
                 }}
+                disabled={isSubmitting}
+                aria-label={isSubmitting ? 'Sending message...' : 'Submit message'}
               >
-                <Send className="w-5 h-5" />
-                <span>&gt;</span> Submit Message
+                {!isSubmitting && <Send className="w-5 h-5" />}
+                <span>></span> {isSubmitting ? 'Sending...' : 'Submit Message'}
               </button>
             </form>
           </div>
